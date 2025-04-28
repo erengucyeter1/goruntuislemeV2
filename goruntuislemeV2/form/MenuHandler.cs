@@ -25,15 +25,6 @@ namespace goruntuislemeV2.form
         public void SetOptionsMenu(Enum filterName, Panel panel)
         {
 
-            foreach(Control control in panel.Controls)
-            {
-                if (control is IMenuChanger menuChanger)
-                {
-                    menuChanger.UpdateMainMenu();
-                    
-                }
-            }
-
             panel.Controls.Clear();
 
 

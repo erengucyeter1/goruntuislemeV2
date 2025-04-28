@@ -2,34 +2,25 @@
 
 namespace goruntuislemeV2.components
 {
-    internal class ZoomPanel : OptionsPanel, IMenuChanger
+    internal class ZoomPanel : OptionsPanel
     {
         ComboBox interpolationMethodCB = new ComboBox();
         NumericUpDown zoomFactorNUD = new NumericUpDown();
 
-        // pictureboxların doldurma yöntemleri değiştirilip geri düzeltilmeşi
-
         public ZoomPanel()
         {
-            foreach(PictureBox pictureBox in MainForm.pictureBoxes)
+            if (!MainForm.rbSetNormal.Checked)
             {
-                pictureBox.SizeMode = PictureBoxSizeMode.Normal;
-
-
+                MainForm.rbSetNormal.Checked = true;
             }
             
+
+
         }
 
 
 
-        public void UpdateMainMenu()
-        {
-            foreach (PictureBox pictureBox in MainForm.pictureBoxes)
-            {
-                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            }
-        }
-
+      
         internal override void InitializeComponents()
         {
            interpolationMethodCB.Size = new Size(100, 20);
@@ -73,16 +64,16 @@ namespace goruntuislemeV2.components
                 case "Nearest":
                     return Filters.NearestNeighborInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
                 case "Bilinear":
-                    return null;
+                    return Filters.BilinearInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
                 case "Bicubic":
-                    return null;
+                    return Filters.BicubicInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
                 default:
                     throw new ArgumentException("Invalid interpolation method");
 
             }
         }
-
         
+
 
 
     }

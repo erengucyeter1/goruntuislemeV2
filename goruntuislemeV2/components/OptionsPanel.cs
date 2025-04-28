@@ -45,6 +45,7 @@ namespace goruntuislemeV2.components
                 return;
             }
 
+
             Bitmap processed = ApplyFilter();
 
             DisplayImage(processed);
@@ -57,10 +58,28 @@ namespace goruntuislemeV2.components
                 MessageBox.Show("Resim işlenemedi.");
                 return;
             }
+            if (MainForm.selectedPictureBox.SizeMode == PictureBoxSizeMode.Normal)
+            {
+                MainForm.selectedPictureBox.Size = img.Size;
+            }
+
+            if (MainForm.pictureBox1.isSelected)
+            {
+                MainForm.pictureBox1.OriginalResolutionImage = img;
+            }
+            else
+            {
+                MainForm.pictureBox2.OriginalResolutionImage = img;
+            }
+
+            
+
 
             MainForm.selectedPictureBox.Image = img;
         }
 
         internal abstract Bitmap ApplyFilter();
+
+
     }
 }

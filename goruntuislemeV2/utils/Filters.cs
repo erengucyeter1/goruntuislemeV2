@@ -939,5 +939,244 @@ namespace goruntuislemeV2.utils
         }
 
 
+        public static Bitmap BilinearInterpolation (Bitmap originalImage, int newWidth, int newHeight)
+        {
+            // Create a new bitmap with the desired dimensions
+            Bitmap resizedImage = new Bitmap(newWidth, newHeight);
+
+            // Calculate scaling factors
+            float xRatio = ((float)(originalImage.Width - 1)) / newWidth;
+            float yRatio = ((float)(originalImage.Height - 1)) / newHeight;
+
+            // Get source bitmap data
+            System.Drawing.Imaging.BitmapData srcData = originalImage.LockBits(
+                new Rectangle(0, 0, originalImage.Width, originalImage.Height),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                originalImage.PixelFormat);
+
+            // Get destination bitmap data
+            System.Drawing.Imaging.BitmapData destData = resizedImage.LockBits(
+                new Rectangle(0, 0, newWidth, newHeight),
+                System.Drawing.Imaging.ImageLockMode.WriteOnly,
+                originalImage.PixelFormat);
+
+            // Get bytes per pixel
+            int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(originalImage.PixelFormat) / 8;
+
+            // Stride is width * bytes per pixel, aligned on 4-byte boundary
+            int srcStride = srcData.Stride;
+            int destStride = destData.Stride;
+
+            // Pointers to the data
+            IntPtr srcScan0 = srcData.Scan0;
+            IntPtr destScan0 = destData.Scan0;
+
+            // Create buffers for source and destination data
+            byte[] srcBuffer = new byte[srcStride * originalImage.Height];
+            byte[] destBuffer = new byte[destStride * newHeight];
+
+            // Copy source data to buffer
+            System.Runtime.InteropServices.Marshal.Copy(srcScan0, srcBuffer, 0, srcBuffer.Length);
+
+            // Process each pixel in the destination image
+            for (int y = 0; y < newHeight; y++)
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    // Calculate source position with floating point
+                    float srcX = x * xRatio;
+                    float srcY = y * yRatio;
+
+                    // Get the four neighboring pixels
+                    int x1 = (int)Math.Floor(srcX);
+                    int y1 = (int)Math.Floor(srcY);
+                    int x2 = Math.Min(x1 + 1, originalImage.Width - 1);
+                    int y2 = Math.Min(y1 + 1, originalImage.Height - 1);
+
+                    // Calculate fractional parts
+                    float xFrac = srcX - x1;
+                    float yFrac = srcY - y1;
+
+                    // Get the offsets for the four pixels in the source buffer
+                    int topLeftOffset = y1 * srcStride + x1 * bytesPerPixel;
+                    int topRightOffset = y1 * srcStride + x2 * bytesPerPixel;
+                    int bottomLeftOffset = y2 * srcStride + x1 * bytesPerPixel;
+                    int bottomRightOffset = y2 * srcStride + x2 * bytesPerPixel;
+
+                    // Destination pixel offset
+                    int destOffset = y * destStride + x * bytesPerPixel;
+
+                    // Bilinear interpolation for each channel (B, G, R, A if present)
+                    for (int i = 0; i < bytesPerPixel; i++)
+                    {
+                        // Get values of the four pixels for this channel
+                        byte c1 = srcBuffer[topLeftOffset + i];
+                        byte c2 = srcBuffer[topRightOffset + i];
+                        byte c3 = srcBuffer[bottomLeftOffset + i];
+                        byte c4 = srcBuffer[bottomRightOffset + i];
+
+                        // Bilinear interpolation (first horizontal, then vertical)
+                        float horizontalTop = c1 * (1 - xFrac) + c2 * xFrac;
+                        float horizontalBottom = c3 * (1 - xFrac) + c4 * xFrac;
+                        byte result = (byte)(horizontalTop * (1 - yFrac) + horizontalBottom * yFrac);
+
+                        // Set the interpolated value to the destination buffer
+                        destBuffer[destOffset + i] = result;
+                    }
+                }
+            }
+
+            // Copy processed data back to destination bitmap
+            System.Runtime.InteropServices.Marshal.Copy(destBuffer, 0, destScan0, destBuffer.Length);
+
+            // Unlock bitmaps
+            originalImage.UnlockBits(srcData);
+            resizedImage.UnlockBits(destData);
+
+            return resizedImage;
+        }
+
+
+        public static Bitmap BicubicInterpolation(Bitmap originalImage, int newWidth, int newHeight)
+        {
+            // Create a new bitmap with the desired dimensions
+            Bitmap resizedImage = new Bitmap(newWidth, newHeight);
+
+            // Calculate scaling factors
+            float xRatio = ((float)(originalImage.Width - 1)) / newWidth;
+            float yRatio = ((float)(originalImage.Height - 1)) / newHeight;
+
+            // Get source bitmap data
+            System.Drawing.Imaging.BitmapData srcData = originalImage.LockBits(
+                new Rectangle(0, 0, originalImage.Width, originalImage.Height),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                originalImage.PixelFormat);
+
+            // Get destination bitmap data
+            System.Drawing.Imaging.BitmapData destData = resizedImage.LockBits(
+                new Rectangle(0, 0, newWidth, newHeight),
+                System.Drawing.Imaging.ImageLockMode.WriteOnly,
+                originalImage.PixelFormat);
+
+            // Get bytes per pixel
+            int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(originalImage.PixelFormat) / 8;
+
+            // Stride is width * bytes per pixel, aligned on 4-byte boundary
+            int srcStride = srcData.Stride;
+            int destStride = destData.Stride;
+
+            // Pointers to the data
+            IntPtr srcScan0 = srcData.Scan0;
+            IntPtr destScan0 = destData.Scan0;
+
+            // Create buffers for source and destination data
+            byte[] srcBuffer = new byte[srcStride * originalImage.Height];
+            byte[] destBuffer = new byte[destStride * newHeight];
+
+            // Copy source data to buffer
+            System.Runtime.InteropServices.Marshal.Copy(srcScan0, srcBuffer, 0, srcBuffer.Length);
+
+            // Process each pixel in the destination image
+            for (int y = 0; y < newHeight; y++)
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    // Calculate source position with floating point
+                    float srcX = x * xRatio;
+                    float srcY = y * yRatio;
+
+                    // Integer parts of source coordinates
+                    int xInt = (int)srcX;
+                    int yInt = (int)srcY;
+
+                    // Fractional parts of source coordinates
+                    float xFrac = srcX - xInt;
+                    float yFrac = srcY - yInt;
+
+                    // Destination pixel offset
+                    int destOffset = y * destStride + x * bytesPerPixel;
+
+                    // For each color channel
+                    for (int channel = 0; channel < bytesPerPixel; channel++)
+                    {
+                        // Get 16 surrounding pixels (4x4 grid) for bicubic interpolation
+                        byte[] samples = new byte[16];
+                        int idx = 0;
+
+                        for (int j = -1; j <= 2; j++)
+                        {
+                            for (int i = -1; i <= 2; i++)
+                            {
+                                // Ensure coordinates are within bounds
+                                int px = Math.Max(0, Math.Min(xInt + i, originalImage.Width - 1));
+                                int py = Math.Max(0, Math.Min(yInt + j, originalImage.Height - 1));
+
+                                // Calculate offset in source buffer
+                                int srcOffset = py * srcStride + px * bytesPerPixel + channel;
+                                samples[idx++] = srcBuffer[srcOffset];
+                            }
+                        }
+
+                        // Apply bicubic interpolation
+                        float result = BicubicInterpolate(samples, xFrac, yFrac);
+
+                        // Clamp result to valid byte range
+                        destBuffer[destOffset + channel] = (byte)Math.Max(0, Math.Min(255, result));
+                    }
+                }
+            }
+
+            // Copy processed data back to destination bitmap
+            System.Runtime.InteropServices.Marshal.Copy(destBuffer, 0, destScan0, destBuffer.Length);
+
+            // Unlock bitmaps
+            originalImage.UnlockBits(srcData);
+            resizedImage.UnlockBits(destData);
+
+            return resizedImage;
+        }
+
+        // Bicubic interpolation helper function
+        private static float BicubicInterpolate(byte[] p, float x, float y)
+        {
+            // Cubic kernel function
+            Func<float, float> cubic = (t) =>
+            {
+                float a = -0.5f; // Adjustable parameter, typically between -0.5 and -0.75
+
+                if (t < 0.0f) t = -t;
+
+                if (t <= 1.0f)
+                    return ((a + 2.0f) * t - (a + 3.0f)) * t * t + 1.0f;
+                else if (t < 2.0f)
+                    return ((a * t - 5.0f * a) * t + 8.0f * a) * t - 4.0f * a;
+                else
+                    return 0.0f;
+            };
+
+            // Calculate interpolation weights
+            float[] wx = new float[4];
+            float[] wy = new float[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                wx[i] = cubic(x + 1.0f - i);
+                wy[i] = cubic(y + 1.0f - i);
+            }
+
+            // Apply bicubic interpolation
+            float result = 0.0f;
+
+            for (int j = 0; j < 4; j++)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    result += p[j * 4 + i] * wx[i] * wy[j];
+                }
+            }
+
+            return result;
+        }
+
     }
 }

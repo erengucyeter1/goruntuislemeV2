@@ -11,15 +11,101 @@ namespace goruntuislemeV2
         public static Bitmap originalImage;
         public static Bitmap tempImage;
         public static FilterNames selectedFilter;
-        public static PictureBox selectedPictureBox;
-        public static PictureBox[] pictureBoxes = new PictureBox[2];
+        public static SafePictureBox selectedPictureBox;
+        public static Panel displayPanel;
+        public static SafePictureBox pictureBox1;
+        public static SafePictureBox pictureBox2;
+        public static RadioButton rbSetNormal;
+        public static RadioButton rbSetStratch;
+
+
 
         public MainForm()
         {
             InitializeComponent();
-            pictureBoxes[0] = pictureBox1;
-            pictureBoxes[1] = pictureBox2;
+
+            this.Controls.Add(displayPanel);
+            initPictureBoxes();
+            initRadioButtons();
         }
+        static MainForm()
+        {
+            initDisplaypanel();
+         
+
+
+        }
+
+
+        private static void initDisplaypanel()
+        {
+            displayPanel = new Panel();
+            displayPanel.SuspendLayout();
+            displayPanel.BackColor = Color.Gainsboro;
+            displayPanel.Location = new Point(12, 228);
+            displayPanel.Name = "displayPanel";
+            displayPanel.Size = new Size(1300, 635);
+            displayPanel.TabIndex = 1;
+            displayPanel.ResumeLayout(false);
+        }
+
+        private void initRadioButtons()
+        {
+            rbSetNormal = new RadioButton();
+            rbSetNormal.AutoSize = true;
+            rbSetNormal.Location = new Point(302, 178);
+            rbSetNormal.Name = "rbNormal";
+            rbSetNormal.Size = new Size(96, 29);
+            rbSetNormal.TabIndex = 6;
+            rbSetNormal.Text = "Normal";
+            rbSetNormal.UseVisualStyleBackColor = true;
+
+            rbSetStratch = new RadioButton();
+            rbSetStratch.AutoSize = true;
+            rbSetStratch.Checked = true;
+            rbSetStratch.Location = new Point(211, 178);
+            rbSetStratch.Name = "rbStratch";
+            rbSetStratch.Size = new Size(91, 29);
+            rbSetStratch.TabIndex = 5;
+            rbSetStratch.TabStop = true;
+            rbSetStratch.Text = "Stratch";
+            rbSetStratch.UseVisualStyleBackColor = true;
+            rbSetStratch.CheckedChanged += rbStratch_CheckedChanged;
+
+            panel1.Controls.Add(rbSetNormal);
+            panel1.Controls.Add(rbSetStratch);
+
+        }
+        private void initPictureBoxes()
+        {
+            pictureBox1 = new SafePictureBox();
+            pictureBox2 = new SafePictureBox();
+
+            pictureBox1.BackColor = Color.White;
+            pictureBox1.Location = new Point(10, 10);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(635, 635);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.TabIndex = 0;
+            pictureBox1.TabStop = false;
+            pictureBox1.DoubleClick += selectPictureBox;
+            pictureBox1.MouseDown += PictureBox_swipe_up;
+
+            pictureBox2.BackColor = Color.White;
+            pictureBox2.Location = new Point(655, 10);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(635, 635);
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.TabIndex = 1;
+            pictureBox2.TabStop = false;
+            pictureBox2.DoubleClick += selectPictureBox;
+            pictureBox2.MouseDown += PictureBox_swipe_up;
+
+            MainForm.displayPanel.Controls.Add(pictureBox1);
+            MainForm.displayPanel.Controls.Add(pictureBox2);
+
+        }
+
 
         protected override void OnLoad(EventArgs e)
         {
@@ -35,7 +121,7 @@ namespace goruntuislemeV2
             {
                 SaveImage();
             }
-            if(e.Control && e.KeyCode == Keys.F)
+            if (e.Control && e.KeyCode == Keys.F)
             {
                 ShowFullResolutionImage();
             }
@@ -50,11 +136,24 @@ namespace goruntuislemeV2
             }
 
             // Create a new form to display the image
+            Size size;
+            if (MainForm.selectedPictureBox.OriginalResolutionImage != null)
+            {
+                size = MainForm.selectedPictureBox.OriginalResolutionImage.Size;
+
+            }
+            else
+            {
+                size = new Size(100, 100);
+            }
+
             Form fullResolutionForm = new Form
             {
                 Text = "Full Resolution Image",
                 AutoScroll = true,
-                Size = new Size(800, 600) // Default size, can be adjusted
+                Size = size
+
+                
             };
 
             PictureBox fullResolutionPictureBox = new PictureBox
@@ -164,13 +263,16 @@ namespace goruntuislemeV2
 
         private void selectPictureBox(object sender, EventArgs e)
         {
-            PictureBox pictureBox = (PictureBox)sender;
+            SafePictureBox pictureBox = (SafePictureBox)sender;
 
             if (selectedPictureBox != null)
             {
                 selectedPictureBox.BorderStyle = BorderStyle.None;
+                selectedPictureBox.isSelected = false;
             }
+           
             selectedPictureBox = pictureBox;
+            selectedPictureBox.isSelected = true;
             pictureBox.BorderStyle = BorderStyle.FixedSingle;
         }
 
@@ -183,6 +285,78 @@ namespace goruntuislemeV2
             thumbnailPictureBox.Image = originalImage;
             thumbnailTemp.Image = tempImage;
 
+        }
+
+
+        public static void ResetPictureBoxes()
+        {
+            pictureBox1.Location = new Point(10, 10);
+            pictureBox1.Size = new Size(635, 635);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Location = new Point(655, 10);
+            pictureBox2.Size = new Size(635, 635);
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+        }
+
+        public static void SetStratch()
+        {
+            MainForm.displayPanel.Controls.Clear();
+
+            MainForm.displayPanel.Controls.Add(pictureBox1);
+            MainForm.displayPanel.Controls.Add(pictureBox2);
+
+
+            ResetPictureBoxes();
+
+        }
+
+
+        public static void SetNormal()
+        {
+            
+
+            MainForm.displayPanel.Controls.Clear();
+
+            SafePictureBox[] pictureBoxes = {pictureBox1, pictureBox2 };
+
+            foreach (SafePictureBox pictureBox in pictureBoxes)
+            {
+                Panel scrollPanel = new Panel();
+                scrollPanel.AutoScroll = true;
+                scrollPanel.Size = pictureBox.Size;
+                scrollPanel.Location = pictureBox.Location;
+                pictureBox.Location = new Point(0, 0);
+                scrollPanel.BorderStyle = BorderStyle.FixedSingle;
+                pictureBox.SizeMode = PictureBoxSizeMode.Normal;
+
+                if(pictureBox.OriginalResolutionImage != null)
+                {
+                    pictureBox.Size = pictureBox.OriginalResolutionImage.Size;
+                    pictureBox.Image = pictureBox.OriginalResolutionImage;
+                }
+                
+
+                scrollPanel.Controls.Add(pictureBox);
+                MainForm.displayPanel.Controls.Add(scrollPanel);
+            }
+
+
+
+
+        }
+
+        private static void rbStratch_CheckedChanged(object sender, EventArgs e)
+        {
+            if(rbSetStratch.Checked)
+            {
+                SetStratch();
+             
+                
+            }
+            else if (rbSetNormal.Checked)
+            {
+                SetNormal();
+            }
         }
     }
 }
