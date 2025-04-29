@@ -1424,5 +1424,61 @@ namespace goruntuislemeV2.utils
             return element;
         }
 
+
+
+        // CUT
+
+        public static Bitmap CutRegion(Bitmap source, Point p1, Point p2, Point p3, Point p4)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            int minX = new[] { p1.X, p2.X, p3.X, p4.X }.Min();
+            int maxX = new[] { p1.X, p2.X, p3.X, p4.X }.Max();
+            int minY = new[] { p1.Y, p2.Y, p3.Y, p4.Y }.Min();
+            int maxY = new[] { p1.Y, p2.Y, p3.Y, p4.Y }.Max();
+
+            minX = Math.Max(0, minX);
+            minY = Math.Max(0, minY);
+            maxX = Math.Min(source.Width - 1, maxX);
+            maxY = Math.Min(source.Height - 1, maxY);
+
+            int width = maxX - minX + 1;
+            int height = maxY - minY + 1;
+
+            Rectangle cropRect = new Rectangle(minX, minY, width, height);
+            Bitmap target = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
+            BitmapData srcData = null;
+            BitmapData dstData = null;
+
+            try
+            {
+                srcData = source.LockBits(cropRect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                dstData = target.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
+                int srcStride = srcData.Stride;
+                int dstStride = dstData.Stride;
+                int rowBytes = width * 4;
+
+                byte[] rowBuffer = new byte[rowBytes];
+
+                for (int y = 0; y < height; y++)
+                {
+                    Marshal.Copy(srcData.Scan0 + y * srcStride, rowBuffer, 0, rowBytes);
+                    Marshal.Copy(rowBuffer, 0, dstData.Scan0 + y * dstStride, rowBytes);
+                }
+            }
+            finally
+            {
+                if (srcData != null)
+                    source.UnlockBits(srcData);
+                if (dstData != null)
+                    target.UnlockBits(dstData);
+            }
+
+            return target;
+        }
+
+
     }
 }

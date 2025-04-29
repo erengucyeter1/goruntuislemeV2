@@ -82,7 +82,7 @@ namespace goruntuislemeV2.components
 
         internal abstract Task<Bitmap> ApplyFilter();
 
-
+        
 
     }
 }

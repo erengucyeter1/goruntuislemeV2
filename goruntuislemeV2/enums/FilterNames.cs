@@ -22,6 +22,7 @@ namespace goruntuislemeV2.enums
         Threshold,
         PrewittEdgeDetection,
         Histogram,
+        Cut,
 
 
 

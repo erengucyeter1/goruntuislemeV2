@@ -29,6 +29,7 @@ namespace goruntuislemeV2
             this.Controls.Add(displayPanel);
             initPictureBoxes();
             initRadioButtons();
+
         }
         static MainForm()
         {
@@ -38,6 +39,8 @@ namespace goruntuislemeV2
 
         }
 
+
+        
 
         private void AddHelpMenu()
         {

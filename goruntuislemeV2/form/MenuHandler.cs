@@ -5,6 +5,8 @@ namespace goruntuislemeV2.form
 {
     internal class MenuHandler
     {
+        OptionsPanel previousPanel;
+        ISideEffectRemove sideEffectRemove;
         public void FillComboBox(ComboBox cb, Type source)
         {
             cb.DataSource = Enum.GetValues(source);
@@ -27,58 +29,81 @@ namespace goruntuislemeV2.form
 
             panel.Controls.Clear();
 
+            if (previousPanel != null)
+            {
+                previousPanel.Dispose();
+                previousPanel = null;
+            }
+
+            if (sideEffectRemove != null)
+            {
+                sideEffectRemove.RemoveSideEffects();
+                sideEffectRemove = null;
+            }
 
 
             switch (filterName)
             {
                 case FilterNames.None:
-                    panel.Controls.Add(new NonePanel());
+                    previousPanel = new NonePanel(); 
                     break;
                 case FilterNames.Grayscale:
-                    panel.Controls.Add(new GrayPanel());
+                    previousPanel = new GrayPanel();
                     break;
                 case FilterNames.Binarize:
-                    panel.Controls.Add(new BinarizePanel());
+                    previousPanel = new BinarizePanel();
                     break;
                
                 case FilterNames.Rotate:
-                    panel.Controls.Add(new RotatePanel());
+                    previousPanel = new RotatePanel();
                     break;
                 case FilterNames.ColorSpace:
-                    panel.Controls.Add(new ColorSpacePanel());
+                    previousPanel = new ColorSpacePanel();
                     break;
                 case FilterNames.SaltAndPepperNoise:
-                    panel.Controls.Add(new SaltPaperPanel());
+                    previousPanel = new SaltPaperPanel();            
                     break;
                 case FilterNames.Aritmatic:
-                    panel.Controls.Add(new AritmaticPanel());
+                    previousPanel = new AritmaticPanel();
                     break;
                 case FilterNames.Threshold:
-                    panel.Controls.Add(new ThresholdPanel());
+                    previousPanel = new ThresholdPanel();
+                   
                     break;
                 case FilterNames.MeanConvolution:
-                    panel.Controls.Add(new MeanConvolutionPanel());
+                    previousPanel = new MeanConvolutionPanel();
+                    
                     break;
                 case FilterNames.Morphology:
-                    panel.Controls.Add(new MorphologyPanel());
+                    previousPanel = new MorphologyPanel();
+                    
                     break;
 
                 case FilterNames.NoiseCleaner:
-                    panel.Controls.Add(new NoiseCleanerPanel());
+                    previousPanel = new NoiseCleanerPanel();
+                   
                     break;
                 case FilterNames.PrewittEdgeDetection:
-                    panel.Controls.Add(new EdgeDetectionPanel());
+                    previousPanel = new EdgeDetectionPanel();
                     break;
                 case FilterNames.Histogram:
-                    panel.Controls.Add(new HistogramPanel());
+                    previousPanel = new HistogramPanel();
                     break;
                 case FilterNames.Zoom:
-                    panel.Controls.Add(new ZoomPanel());
+                    previousPanel = new ZoomPanel();
                     break;
-
-                default:
-                    break;
+                case FilterNames.Cut:
+                    previousPanel = new CutPanel();
+                    sideEffectRemove = (ISideEffectRemove)previousPanel;
+                    break;   
             }
+
+            if (previousPanel != null)
+            {
+                previousPanel.InitializeComponents();
+                panel.Controls.Add(previousPanel);
+            }
+            
         }
 
     }
