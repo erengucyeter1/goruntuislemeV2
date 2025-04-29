@@ -23,6 +23,8 @@ namespace goruntuislemeV2.enums
         PrewittEdgeDetection,
         Histogram,
         Cut,
+        Unsharp,
+        IncreaseContrast
 
 
 

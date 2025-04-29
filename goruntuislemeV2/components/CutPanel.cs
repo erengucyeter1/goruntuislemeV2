@@ -1,4 +1,5 @@
-﻿using goruntuislemeV2.utils;
+﻿using goruntuislemeV2.form;
+using goruntuislemeV2.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,22 +13,24 @@ namespace goruntuislemeV2.components
         private int maxPoints = 4;
         private List<Point> points = new List<Point>(4);
 
-        private Bitmap tempImage = new Bitmap(MainForm.originalImage);
+        private Bitmap tempImage;
         public CutPanel()
         {
-
-            NonePanel nonePanel = new NonePanel();
-            nonePanel.Apply(null, null);
+            tempImage = new Bitmap(MainForm.originalImage);
 
             if (!MainForm.rbSetNormal.Checked)
             {
                 MainForm.rbSetNormal.Checked = true;
             }
 
-
-
             AddPointObserverToPictureBoxes();
+
+
         }
+
+
+       
+
 
         private void AddPointObserverToPictureBoxes()
         {
@@ -36,11 +39,27 @@ namespace goruntuislemeV2.components
 
         public void RemoveSideEffects()
         {
-            MainForm.selectedPictureBox.MouseDown -= AddPoint;
-            if(points.Count > 0)
+            foreach (SafePictureBox p in MainForm.AllPanels)
             {
-                ResetPictureBox();
-                MainForm.selectedPictureBox.Image = new Bitmap(MainForm.originalImage);
+                try { 
+                p.MouseDown -= AddPoint;
+                }
+                catch (Exception e)
+                {
+                    
+                }
+
+                p.Controls.Clear();
+
+                if(p.OriginalResolutionImage != null)
+                {
+                    p.Image = new Bitmap(p.OriginalResolutionImage);
+                }
+                else
+                {
+                    p.Image = new Bitmap(MainForm.originalImage);
+                }
+              
             }
         }
 
@@ -124,12 +143,27 @@ namespace goruntuislemeV2.components
         {
             MainForm.selectedPictureBox.Controls.Clear();
             points.Clear();
-            //MainForm.selectedPictureBox.Image = new Bitmap(MainForm.originalImage);
+            MainForm.selectedPictureBox.Image = new Bitmap(tempImage);
         }
         internal override void InitializeComponents()
         {
-            base.InitializeComponents();
+            Label directionsLabel = new Label();
+            directionsLabel.Text = "Please mark 4 points using left-click.\nYou can remove any point by right-clicking on it.";
+            directionsLabel.Location = new Point(10, 10);
+            directionsLabel.AutoSize = true;
+            this.Controls.Add(directionsLabel);
 
+
+            Button resetBtn = new Button();
+            resetBtn.Text = "Reset";
+            resetBtn.Location = new Point(5, 155);
+            resetBtn.Size = new Size(100, 40);
+            resetBtn.Click += (s, e) =>
+            {
+                ResetPictureBox();
+            };
+
+            this.Controls.Add(resetBtn);
         }
 
         internal override  async Task<Bitmap> ApplyFilter()

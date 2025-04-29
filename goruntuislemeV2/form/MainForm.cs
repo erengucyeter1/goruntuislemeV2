@@ -7,7 +7,7 @@ namespace goruntuislemeV2
 {
     public partial class MainForm : Form
     {
-        readonly MenuHandler menuHandler = new();
+        public static readonly MenuHandler menuHandler = new();
         public static Bitmap originalImage;
         public static Bitmap tempImage;
         public static FilterNames selectedFilter;
@@ -17,6 +17,7 @@ namespace goruntuislemeV2
         public static SafePictureBox pictureBox2;
         public static RadioButton rbSetNormal;
         public static RadioButton rbSetStratch;
+        public static SafePictureBox[] AllPanels;
 
 
 
@@ -28,7 +29,9 @@ namespace goruntuislemeV2
 
             this.Controls.Add(displayPanel);
             initPictureBoxes();
+            AllPanels = new SafePictureBox[] { pictureBox1, pictureBox2 };
             initRadioButtons();
+            
 
         }
         static MainForm()
@@ -240,6 +243,8 @@ namespace goruntuislemeV2
         {
             originalImage = menuHandler.GetImage();
             this.thumbnailPictureBox.Image = originalImage;
+            selectedPictureBox.Image = originalImage;
+            selectedPictureBox.OriginalResolutionImage = originalImage;
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -279,7 +284,11 @@ namespace goruntuislemeV2
         {
 
             selectedFilter = (FilterNames)filtersComboBox.SelectedItem;
-            menuHandler.SetOptionsMenu(selectedFilter, optionsPanel);
+            bool success = menuHandler.SetOptionsMenu(selectedFilter, optionsPanel);
+            if (!success)
+            {
+                filtersComboBox.SelectedItem = FilterNames.None;
+            }
 
         }
 
@@ -355,6 +364,7 @@ namespace goruntuislemeV2
                 {
                     pictureBox.Size = pictureBox.OriginalResolutionImage.Size;
                     pictureBox.Image = pictureBox.OriginalResolutionImage;
+
                 }
                 
 

@@ -3,7 +3,7 @@ using goruntuislemeV2.components;
 
 namespace goruntuislemeV2.form
 {
-    internal class MenuHandler
+    public class MenuHandler
     {
         OptionsPanel previousPanel;
         ISideEffectRemove sideEffectRemove;
@@ -24,8 +24,9 @@ namespace goruntuislemeV2.form
             return null;
         }
 
-        public void SetOptionsMenu(Enum filterName, Panel panel)
+        public bool SetOptionsMenu(Enum filterName, Panel panel)
         {
+            bool success = true;
 
             panel.Controls.Clear();
 
@@ -93,17 +94,32 @@ namespace goruntuislemeV2.form
                     previousPanel = new ZoomPanel();
                     break;
                 case FilterNames.Cut:
+                    if(MainForm.originalImage == null)
+                    {
+                        MessageBox.Show("Please select an image first.");
+                        success = false;
+                        break;
+                    }
                     previousPanel = new CutPanel();
                     sideEffectRemove = (ISideEffectRemove)previousPanel;
                     break;   
+
+                case FilterNames.Unsharp:
+                    previousPanel = new UnsharpPanel();
+                    break;
+
+                case FilterNames.IncreaseContrast:
+                    previousPanel = new ContrastPanel();
+                    break;
             }
 
             if (previousPanel != null)
             {
-                previousPanel.InitializeComponents();
                 panel.Controls.Add(previousPanel);
             }
-            
+
+            return success;
+
         }
 
     }

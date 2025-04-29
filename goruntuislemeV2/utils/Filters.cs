@@ -1479,6 +1479,140 @@ namespace goruntuislemeV2.utils
             return target;
         }
 
+        // unsharp 
+
+        public static Bitmap ApplyUnsharpMask(Bitmap image, float amount)
+        {
+            Bitmap blurred = ApplyGaussianBlur(image);
+            Bitmap result = new Bitmap(image.Width, image.Height);
+
+            Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
+
+            BitmapData origData = image.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData blurData = blurred.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData resultData = result.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+
+            int stride = origData.Stride;
+            int bytes = stride * image.Height;
+
+            byte[] origBuffer = new byte[bytes];
+            byte[] blurBuffer = new byte[bytes];
+            byte[] resultBuffer = new byte[bytes];
+
+            Marshal.Copy(origData.Scan0, origBuffer, 0, bytes);
+            Marshal.Copy(blurData.Scan0, blurBuffer, 0, bytes);
+
+            image.UnlockBits(origData);
+            blurred.UnlockBits(blurData);
+
+            for (int i = 0; i < bytes; i++)
+            {
+                int val = (int)(origBuffer[i] + amount * (origBuffer[i] - blurBuffer[i]));
+                resultBuffer[i] = (byte)Truncate(val);
+            }
+
+            Marshal.Copy(resultBuffer, 0, resultData.Scan0, bytes);
+            result.UnlockBits(resultData);
+
+            return result;
+        }
+        private static Bitmap ApplyGaussianBlur(Bitmap img)
+        {
+            Bitmap result = new Bitmap(img.Width, img.Height);
+            int[,] kernel = {
+                { 1, 2, 1 },
+                { 2, 4, 2 },
+                { 1, 2, 1 }
+            };
+            int kernelSum = 16;
+
+            Rectangle rect = new Rectangle(0, 0, img.Width, img.Height);
+            BitmapData srcData = img.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData dstData = result.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+
+            int stride = srcData.Stride;
+            int width = img.Width;
+            int height = img.Height;
+            byte[] buffer = new byte[stride * height];
+            byte[] resultBuffer = new byte[stride * height];
+
+            Marshal.Copy(srcData.Scan0, buffer, 0, buffer.Length);
+            img.UnlockBits(srcData);
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int r = 0, g = 0, b = 0;
+
+                    for (int ky = -1; ky <= 1; ky++)
+                    {
+                        for (int kx = -1; kx <= 1; kx++)
+                        {
+                            int px = x + kx;
+                            int py = y + ky;
+                            int offset = py * stride + px * 3;
+                            int weight = kernel[ky + 1, kx + 1];
+
+                            b += buffer[offset] * weight;
+                            g += buffer[offset + 1] * weight;
+                            r += buffer[offset + 2] * weight;
+                        }
+                    }
+
+                    int index = y * stride + x * 3;
+                    resultBuffer[index] = (byte)Truncate(b / kernelSum);
+                    resultBuffer[index + 1] = (byte)Truncate(g / kernelSum);
+                    resultBuffer[index + 2] = (byte)Truncate(r / kernelSum);
+                }
+            }
+
+            Marshal.Copy(resultBuffer, 0, dstData.Scan0, resultBuffer.Length);
+            result.UnlockBits(dstData);
+
+            return result;
+        }
+
+        private static int Truncate(int value)
+        {
+            return Math.Min(255, Math.Max(0, value));
+        }
+
+
+        // Increase Contrast
+
+        public static Bitmap IncreaseContrast(Bitmap img, float contrastFactor)
+        {
+            Bitmap result = new Bitmap(img.Width, img.Height);
+            Rectangle rect = new Rectangle(0, 0, img.Width, img.Height);
+
+            BitmapData srcData = img.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            BitmapData dstData = result.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+
+            int stride = srcData.Stride;
+            int bytes = Math.Abs(stride) * img.Height;
+            byte[] pixelBuffer = new byte[bytes];
+            byte[] resultBuffer = new byte[bytes];
+
+            Marshal.Copy(srcData.Scan0, pixelBuffer, 0, bytes);
+            img.UnlockBits(srcData);
+
+
+            for (int k = 0; k < pixelBuffer.Length; k += 3)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    float color = pixelBuffer[k + i] / 255.0f;
+                    color = (((color - 0.5f) * contrastFactor) + 0.5f) * 255.0f;
+                    resultBuffer[k + i] = (byte)Truncate((int)color);
+                }
+            }
+
+            Marshal.Copy(resultBuffer, 0, dstData.Scan0, bytes);
+            result.UnlockBits(dstData);
+            return result;
+        }
+
 
     }
 }

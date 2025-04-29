@@ -50,6 +50,12 @@ namespace goruntuislemeV2.components
 
             Bitmap processed = await ApplyFilter();
 
+            if (processed == null)
+            {
+                MainForm.selectedPictureBox.Image = Filters.StringToBitmap("\n\n\n      Something Went Wrong!", 32);
+                return;
+            }
+
             DisplayImage(processed);
         }
 
