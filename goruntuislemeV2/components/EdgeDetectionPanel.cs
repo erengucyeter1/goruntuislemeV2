@@ -6,9 +6,12 @@ namespace goruntuislemeV2.components
     {
 
 
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
-            return Filters.PrewittEdgeDetection(MainForm.originalImage);
+            return await Task.Run(() =>
+            {
+                return Filters.PrewittEdgeDetection(MainForm.originalImage);
+            });
         }
     }
 }

@@ -10,10 +10,12 @@ namespace goruntuislemeV2.components
         {
             
         }
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
-            return Filters.Binarize(MainForm.originalImage);
-            
+            return await Task.Run(() =>
+            {
+                return Filters.Binarize(MainForm.originalImage);
+            });
 
         }
     }

@@ -17,22 +17,25 @@ namespace goruntuislemeV2.components
         private Panel InputPanel { get; set; } = new Panel();
 
 
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
             string processType = processTypeComboBox.Text;
 
-            if (processType == "Germe")
+            return await Task.Run(() =>
             {
-                return Filters.HistogramGerme(MainForm.originalImage, (int)InputMin.Value, (int)InputMax.Value, (int)OutpuMin.Value, (int)OutputMax.Value);
-            }
-            else if (processType == "Genişletme")
-            {
-                return Filters.HistogramGenisletme(MainForm.originalImage);
-            }
-            else
-            {
-                throw new Exception("Geçersiz işlem türü");
-            }
+                if (processType == "Germe")
+                {
+                    return Filters.HistogramGerme(MainForm.originalImage, (int)InputMin.Value, (int)InputMax.Value, (int)OutpuMin.Value, (int)OutputMax.Value);
+                }
+                else if (processType == "Genişletme")
+                {
+                    return Filters.HistogramGenisletme(MainForm.originalImage);
+                }
+                else
+                {
+                    throw new Exception("Geçersiz işlem türü");
+                }
+            });
         }
         private void InitNumUD(NumericUpDown nud)
         {

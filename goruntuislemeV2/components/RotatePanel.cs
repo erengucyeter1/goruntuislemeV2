@@ -42,11 +42,15 @@ namespace goruntuislemeV2.components
 
         }
 
-        internal override Bitmap ApplyFilter()
+        internal  async override Task<Bitmap> ApplyFilter()
         {
             
             int angle = (int)angleNumericUpDown.Value;
-            return Filters.RotateImage(MainForm.originalImage, angle);
+
+            return await Task.Run(() =>
+            {
+                return Filters.RotateImage(MainForm.originalImage, angle);
+            });
         }
 
 

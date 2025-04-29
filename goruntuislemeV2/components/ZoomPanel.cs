@@ -46,33 +46,36 @@ namespace goruntuislemeV2.components
 
             zoomFactorNUD.Location = new Point(120, 30);
             zoomFactorNUD.Size = new Size(100, 20);
-            zoomFactorNUD.Minimum = 1;
+            zoomFactorNUD.Minimum = 0.00001M;
             zoomFactorNUD.Maximum = 10;
-            zoomFactorNUD.Value = 2;
+            zoomFactorNUD.Value = 1;
+            zoomFactorNUD.DecimalPlaces = 5;
+            zoomFactorNUD.Increment = 0.01M;
             this.Controls.Add(zoomFactorNUD);
 
         }
 
-        internal override Bitmap ApplyFilter()
+        internal override async Task<Bitmap> ApplyFilter()
         {
             string interpolationMethod = interpolationMethodCB.SelectedItem.ToString();
             decimal zoomFactor = zoomFactorNUD.Value;
 
-
-            switch (interpolationMethod)
+            return await Task.Run(() =>
             {
-                case "Nearest":
-                    return Filters.NearestNeighborInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
-                case "Bilinear":
-                    return Filters.BilinearInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
-                case "Bicubic":
-                    return Filters.BicubicInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
-                default:
-                    throw new ArgumentException("Invalid interpolation method");
-
-            }
+                switch (interpolationMethod)
+                {
+                    case "Nearest":
+                        return Filters.NearestNeighborInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
+                    case "Bilinear":
+                        return Filters.BilinearInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
+                    case "Bicubic":
+                        return Filters.BicubicInterpolation(MainForm.originalImage, (int)(MainForm.originalImage.Width * zoomFactor), (int)(MainForm.originalImage.Height * zoomFactor));
+                    default:
+                        throw new ArgumentException("Invalid interpolation method");
+                }
+            });
         }
-        
+
 
 
 

@@ -32,9 +32,12 @@ namespace goruntuislemeV2.components
            
 
         }
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
-            return Filters.Binarize(MainForm.originalImage, ThresoldVal); // 128 eşik değeri örnek
-        }
+            return await Task.Run(() =>
+            {
+                return Filters.Binarize(MainForm.originalImage, ThresoldVal); // 128 eşik değeri örnek
+            });      
+            }
     }
 }

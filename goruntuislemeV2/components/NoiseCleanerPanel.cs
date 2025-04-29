@@ -55,18 +55,22 @@ namespace goruntuislemeV2.components
 
         }
 
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
             string filterType = FilterTypeCB.SelectedItem.ToString();
-            switch (filterType)
+
+            return await Task.Run(() =>
             {
-                case "Median":
-                    return Filters.applyMedianFilter(MainForm.originalImage, (int)KernelSizeUpDown.Value);
-                case "Mean":
-                    return Filters.applyMeanFilter(MainForm.originalImage, (int)KernelSizeUpDown.Value);
-                default:
-                    throw new NotImplementedException("Filter type not implemented");
-            }
+                switch (filterType)
+                {
+                    case "Median":
+                        return Filters.applyMedianFilter(MainForm.originalImage, (int)KernelSizeUpDown.Value);
+                    case "Mean":
+                        return Filters.applyMeanFilter(MainForm.originalImage, (int)KernelSizeUpDown.Value);
+                    default:
+                        throw new NotImplementedException("Filter type not implemented");
+                }
+            });
 
             
         }

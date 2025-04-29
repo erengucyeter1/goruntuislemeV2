@@ -13,7 +13,7 @@ namespace goruntuislemeV2.enums
         Binarize,
         Rotate,
         Zoom,
-        
+        MeanConvolution,
         Morphology,
         ColorSpace,
         SaltAndPepperNoise,

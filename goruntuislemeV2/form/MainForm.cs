@@ -23,6 +23,8 @@ namespace goruntuislemeV2
         public MainForm()
         {
             InitializeComponent();
+            this.AutoSize = true;
+            AddHelpMenu();
 
             this.Controls.Add(displayPanel);
             initPictureBoxes();
@@ -37,14 +39,31 @@ namespace goruntuislemeV2
         }
 
 
+        private void AddHelpMenu()
+        {
+            MenuStrip menuStrip = new MenuStrip();
+            ToolStripMenuItem helpMenuItem = new ToolStripMenuItem("Help");
+
+            helpMenuItem.Click += (s, e) =>
+            {
+                HelpForm helpForm = new HelpForm();
+                helpForm.ShowDialog();
+            };
+
+            menuStrip.Items.Add(helpMenuItem);
+            this.MainMenuStrip = menuStrip;
+            this.Controls.Add(menuStrip);
+        }
+
+
         private static void initDisplaypanel()
         {
             displayPanel = new Panel();
             displayPanel.SuspendLayout();
             displayPanel.BackColor = Color.Gainsboro;
-            displayPanel.Location = new Point(12, 228);
+            displayPanel.Location = new Point(12, 253);
             displayPanel.Name = "displayPanel";
-            displayPanel.Size = new Size(1300, 635);
+            displayPanel.Size = new Size(1300, 655);
             displayPanel.TabIndex = 1;
             displayPanel.ResumeLayout(false);
         }
@@ -192,7 +211,7 @@ namespace goruntuislemeV2
 
                     try
                     {
-                        MainForm.originalImage.Save(saveFileDialog.FileName, format);
+                       MainForm.selectedPictureBox.OriginalResolutionImage.Save(saveFileDialog.FileName, format);
 
                     }
                     catch (Exception)

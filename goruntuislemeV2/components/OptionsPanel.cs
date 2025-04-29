@@ -1,4 +1,5 @@
-﻿using System;
+﻿using goruntuislemeV2.utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +37,7 @@ namespace goruntuislemeV2.components
             this.Controls.Add(ApplyButton);
         }
 
-        internal void Apply(object? sender, EventArgs e)
+        internal async void  Apply(object? sender, EventArgs e)
         {
             
             if (ImageRequired && MainForm.originalImage == null)
@@ -45,8 +46,9 @@ namespace goruntuislemeV2.components
                 return;
             }
 
+            MainForm.selectedPictureBox.Image = Filters.StringToBitmap("\n\n\n      Processing...", 32);
 
-            Bitmap processed = ApplyFilter();
+            Bitmap processed = await ApplyFilter();
 
             DisplayImage(processed);
         }
@@ -78,7 +80,8 @@ namespace goruntuislemeV2.components
             MainForm.selectedPictureBox.Image = img;
         }
 
-        internal abstract Bitmap ApplyFilter();
+        internal abstract Task<Bitmap> ApplyFilter();
+
 
 
     }

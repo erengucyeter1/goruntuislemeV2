@@ -6,7 +6,17 @@ using System.Threading.Tasks;
 
 namespace goruntuislemeV2.components
 {
-    internal class CutPanel : Panel
+    internal class CutPanel : OptionsPanel
     {
+
+        internal override void InitializeComponents()
+        {
+            base.InitializeComponents();
+        }
+
+        internal override  async Task<Bitmap> ApplyFilter()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

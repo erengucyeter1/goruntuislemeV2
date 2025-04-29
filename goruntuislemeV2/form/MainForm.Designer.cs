@@ -29,12 +29,10 @@
         private void InitializeComponent()
         {
             panel1 = new Panel();
-
             thumbnailTemp = new PictureBox();
             optionsPanel = new Panel();
             filtersComboBox = new ComboBox();
             thumbnailPictureBox = new PictureBox();
-    
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)thumbnailTemp).BeginInit();
             ((System.ComponentModel.ISupportInitialize)thumbnailPictureBox).BeginInit();
@@ -43,23 +41,14 @@
             // panel1
             // 
             panel1.BackColor = Color.Gainsboro;
-
             panel1.Controls.Add(thumbnailTemp);
             panel1.Controls.Add(optionsPanel);
             panel1.Controls.Add(filtersComboBox);
             panel1.Controls.Add(thumbnailPictureBox);
-            panel1.Location = new Point(12, 12);
+            panel1.Location = new Point(12, 37);
             panel1.Name = "panel1";
             panel1.Size = new Size(1300, 210);
             panel1.TabIndex = 0;
-            // 
-            // rbNormal
-            // 
-            
-            // 
-            // rbStratch
-            // 
-            
             // 
             // thumbnailTemp
             // 
@@ -98,14 +87,6 @@
             thumbnailPictureBox.Paint += pictureBox1_Paint;
             thumbnailPictureBox.DoubleClick += thumbnailPictureBox_DoubleClick;
             // 
-            // pictureBox2
-            // 
-            
-            // 
-            // pictureBox1
-            // 
-            
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -116,10 +97,8 @@
             Text = "Home";
             Load += MainForm_Load;
             panel1.ResumeLayout(false);
-            panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)thumbnailTemp).EndInit();
             ((System.ComponentModel.ISupportInitialize)thumbnailPictureBox).EndInit();
-      
             ResumeLayout(false);
         }
 

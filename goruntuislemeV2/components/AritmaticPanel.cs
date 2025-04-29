@@ -23,7 +23,7 @@ namespace goruntuislemeV2.components
             label.Text = "Operation";
             label.Location = new System.Drawing.Point(10, 8);
             label.AutoSize = true;
-            operationComboBox.Location = new System.Drawing.Point(10, 30);
+            operationComboBox.Location = new System.Drawing.Point(10, 40);
             operationComboBox.Size = new Size(100, 20);
             operationComboBox.Items.Add("Add");
             operationComboBox.Items.Add("Subtract");
@@ -31,25 +31,43 @@ namespace goruntuislemeV2.components
             operationComboBox.Items.Add("Divide");
             operationComboBox.SelectedIndex = 0;
             this.Controls.Add(operationComboBox);
+            this.Controls.Add(label);
 
 
             label = new Label();
-            label.Text = "Operation Image";
+            label.Text = "Operant";
             label.Location = new System.Drawing.Point(120, 8);
             label.AutoSize = true;
             this.Controls.Add(label);
 
-            pictureBox.DoubleClick += new EventHandler((sender, e) =>
+            Label infoLabel = new Label();
+            infoLabel.Text = "Double left click \nto select an image,\n\nDoble right click \nto use temp image.";
+            infoLabel.Location = new System.Drawing.Point(280,40 );
+            infoLabel.Font = new Font("Arial", 10);
+            infoLabel.AutoSize = true;
+            infoLabel.BackColor = Color.LightGray;
+            infoLabel.BorderStyle = BorderStyle.FixedSingle;
+
+            this.Controls.Add(infoLabel);
+
+            pictureBox.MouseDoubleClick += new MouseEventHandler((sender, e) =>
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                if (e.Button == MouseButtons.Left)
                 {
-                    pictureBox.Image = Image.FromFile(openFileDialog.FileName);
+                    OpenFileDialog openFileDialog = new OpenFileDialog();
+                    openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        pictureBox.Image = Image.FromFile(openFileDialog.FileName);
+                    }
+                }
+                if (e.Button == MouseButtons.Right)
+                {
+                    pictureBox.Image = MainForm.tempImage;
                 }
             });
-            pictureBox.Location = new System.Drawing.Point(120, 30);
-            pictureBox.Size = new Size(100, 100);
+            pictureBox.Location = new System.Drawing.Point(120, 40);
+            pictureBox.Size = new Size(150, 150);
             pictureBox.BorderStyle = BorderStyle.FixedSingle;
             pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
             this.Controls.Add(pictureBox);
@@ -58,7 +76,7 @@ namespace goruntuislemeV2.components
 
         
 
-           internal override Bitmap ApplyFilter()
+           internal async  override Task<Bitmap> ApplyFilter()
              {
             string operation = operationComboBox.SelectedItem.ToString();
             Bitmap image = pictureBox.Image as Bitmap;
@@ -79,19 +97,23 @@ namespace goruntuislemeV2.components
                 image = resizedImage;
             }
 
-            switch (operation)
+            return await Task.Run(() =>
             {
-                case "Add":
-                    return Filters.addImage(MainForm.originalImage, image);
-                case "Subtract":
-                    return Filters.substractImage(MainForm.originalImage, image);
-                case "Multiply":
-                    return Filters.multiplyImage(MainForm.originalImage, image);
-                case "Divide":
-                    return Filters.divideImage(MainForm.originalImage, image);
-                default:
-                    throw new NotImplementedException("Operation not implemented");
-            }
+                switch (operation)
+                {
+                    case "Add":
+                        return Filters.addImage(MainForm.originalImage, image);
+                    case "Subtract":
+                        return Filters.substractImage(MainForm.originalImage, image);
+                    case "Multiply":
+                        return Filters.multiplyImage(MainForm.originalImage, image);
+                    case "Divide":
+                        return Filters.divideImage(MainForm.originalImage, image);
+                    default:
+                        throw new NotImplementedException("Operation not implemented");
+                }
+            });
+
         }
 
     }

@@ -78,7 +78,7 @@ namespace goruntuislemeV2.components
             throw new NotImplementedException();
         }
 
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
             string sourceColorSpace = this.sourceColorSpaceCB.SelectedItem.ToString();
             string destinationColorSpace = this.destinationColorSpaceCB.SelectedItem.ToString();
@@ -101,9 +101,13 @@ namespace goruntuislemeV2.components
             ];
 
             // Invoke the method and cast the result to Bitmap  
-            Bitmap result = (Bitmap)method.Invoke(null,parameters);
 
-            return result;
+            return await Task.Run(() =>
+            {
+                Bitmap result = (Bitmap)method.Invoke(null, parameters);
+
+                return result;
+            });
         }
 
 

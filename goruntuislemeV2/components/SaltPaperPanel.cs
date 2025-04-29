@@ -37,10 +37,13 @@ namespace goruntuislemeV2.components
 
 
 
-        internal override Bitmap ApplyFilter()
+        internal async override Task<Bitmap> ApplyFilter()
         {
             float noiseRatio = (float)NoiseRatioUpDown.Value;
-            return Filters.AddSaltAndPepperNoise(MainForm.originalImage, noiseRatio);
+            return await Task.Run(() =>
+            {
+                return Filters.AddSaltAndPepperNoise(MainForm.originalImage, noiseRatio);
+            });
         }
 
     }

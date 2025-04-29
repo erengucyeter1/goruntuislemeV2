@@ -319,14 +319,14 @@ namespace goruntuislemeV2.utils
 
         //
 
-        private static Bitmap StringToBitmap(string text)
+        public static Bitmap StringToBitmap(string text, int emSize =52)
         {
             // Create a bitmap to write the string
             Bitmap bitmap = new Bitmap(600, 600); // Adjust size as needed
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 g.Clear(Color.White); // Set background color
-                using (Font font = new Font("Arial", 52))
+                using (Font font = new Font("Arial", emSize))
                 {
                     g.DrawString(text, font, Brushes.Black, new PointF(10, 10));
                 }
@@ -1176,6 +1176,252 @@ namespace goruntuislemeV2.utils
             }
 
             return result;
+        }
+
+
+        // mean conv
+
+        public static Bitmap MeanConvolution(Bitmap sourceImage, int kernelSize = 3)
+        {
+            if (kernelSize % 2 == 0) kernelSize++;
+            if (kernelSize < 3) kernelSize = 3;
+
+            // 32bpp formatına dönüştür
+            Bitmap formattedImage = new Bitmap(sourceImage.Width, sourceImage.Height, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(formattedImage))
+            {
+                g.DrawImage(sourceImage, new Rectangle(0, 0, formattedImage.Width, formattedImage.Height));
+            }
+
+            int width = formattedImage.Width;
+            int height = formattedImage.Height;
+            int radius = kernelSize / 2;
+            int bytesPerPixel = 4;
+
+            Bitmap resultImage = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
+            BitmapData srcData = formattedImage.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, formattedImage.PixelFormat);
+            BitmapData resData = resultImage.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, resultImage.PixelFormat);
+
+            int stride = srcData.Stride;
+            int totalBytes = stride * height;
+
+            byte[] srcPixels = new byte[totalBytes];
+            byte[] resPixels = new byte[totalBytes];
+
+            Marshal.Copy(srcData.Scan0, srcPixels, 0, totalBytes);
+
+            // Çoklu iş parçacığı işlemi için paralel döngü ekleyelim.
+            Parallel.For(0, height, y =>
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int sumB = 0, sumG = 0, sumR = 0, sumA = 0;
+                    int count = 0;
+
+                    for (int ky = -radius; ky <= radius; ky++)
+                    {
+                        int py = Clamp(y + ky, 0, height - 1);
+                        for (int kx = -radius; kx <= radius; kx++)
+                        {
+                            int px = Clamp(x + kx, 0, width - 1);
+                            int index = py * stride + px * bytesPerPixel;
+
+                            sumB += srcPixels[index];
+                            sumG += srcPixels[index + 1];
+                            sumR += srcPixels[index + 2];
+                            sumA += srcPixels[index + 3];
+                            count++;
+                        }
+                    }
+
+                    int i = y * stride + x * bytesPerPixel;
+                    resPixels[i] = (byte)(sumB / count);
+                    resPixels[i + 1] = (byte)(sumG / count);
+                    resPixels[i + 2] = (byte)(sumR / count);
+                    resPixels[i + 3] = (byte)(sumA / count);
+                }
+            });
+
+            Marshal.Copy(resPixels, 0, resData.Scan0, totalBytes);
+            formattedImage.UnlockBits(srcData);
+            resultImage.UnlockBits(resData);
+            formattedImage.Dispose();
+
+            return resultImage;
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            return Math.Max(min, Math.Min(max, value));
+        }
+
+
+
+        // Morphology
+
+        private static Bitmap ApplyMorphologicalOperation(Bitmap sourceImage, bool[,] structElement, bool isDilation)
+        {
+            int width = sourceImage.Width;
+            int height = sourceImage.Height;
+            Bitmap resultImage = new Bitmap(width, height);
+
+            int size = structElement.GetLength(0);
+            int radius = size / 2;
+
+            BitmapData sourceData = sourceImage.LockBits(
+                new Rectangle(0, 0, width, height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+
+            BitmapData resultData = resultImage.LockBits(
+                new Rectangle(0, 0, width, height),
+                ImageLockMode.WriteOnly,
+                PixelFormat.Format32bppArgb);
+
+            int bytesPerPixel = 4;
+            int stride = sourceData.Stride;
+            int totalBytes = stride * height;
+
+            byte[] sourcePixels = new byte[totalBytes];
+            byte[] resultPixels = new byte[totalBytes];
+
+            Marshal.Copy(sourceData.Scan0, sourcePixels, 0, totalBytes);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    byte maxB = 0, maxG = 0, maxR = 0, maxA = 0;
+                    byte minB = 255, minG = 255, minR = 255, minA = 255;
+
+                    for (int ky = -radius; ky <= radius; ky++)
+                    {
+                        for (int kx = -radius; kx <= radius; kx++)
+                        {
+                            int sy = ky + radius;
+                            int sx = kx + radius;
+
+                            if (!structElement[sy, sx]) continue;
+
+                            int py = Math.Max(0, Math.Min(y + ky, height - 1));
+                            int px = Math.Max(0, Math.Min(x + kx, width - 1));
+                            int pixelIndex = py * stride + px * bytesPerPixel;
+
+                            byte b = sourcePixels[pixelIndex];
+                            byte g = sourcePixels[pixelIndex + 1];
+                            byte r = sourcePixels[pixelIndex + 2];
+                            byte a = sourcePixels[pixelIndex + 3];
+
+                            maxB = Math.Max(maxB, b);
+                            maxG = Math.Max(maxG, g);
+                            maxR = Math.Max(maxR, r);
+                            maxA = Math.Max(maxA, a);
+
+                            minB = Math.Min(minB, b);
+                            minG = Math.Min(minG, g);
+                            minR = Math.Min(minR, r);
+                            minA = Math.Min(minA, a);
+                        }
+                    }
+
+                    int resultIndex = y * stride + x * bytesPerPixel;
+                    if (isDilation)
+                    {
+                        resultPixels[resultIndex] = maxB;
+                        resultPixels[resultIndex + 1] = maxG;
+                        resultPixels[resultIndex + 2] = maxR;
+                        resultPixels[resultIndex + 3] = maxA;
+                    }
+                    else
+                    {
+                        resultPixels[resultIndex] = minB;
+                        resultPixels[resultIndex + 1] = minG;
+                        resultPixels[resultIndex + 2] = minR;
+                        resultPixels[resultIndex + 3] = minA;
+                    }
+                }
+            }
+
+            Marshal.Copy(resultPixels, 0, resultData.Scan0, totalBytes);
+            sourceImage.UnlockBits(sourceData);
+            resultImage.UnlockBits(resultData);
+
+            return resultImage;
+        }
+
+        public static Bitmap Opening(Bitmap sourceImage, string shape, int structureSize = 3)
+        {
+            using (Bitmap eroded = Erosion(sourceImage, shape, structureSize))
+            {
+                return Dilation(eroded, shape, structureSize);
+            }
+        }
+
+        public static Bitmap Closing(Bitmap sourceImage, string shape, int structureSize = 3)
+        {
+            using (Bitmap dilated = Dilation(sourceImage, shape, structureSize))
+            {
+                return Erosion(dilated, shape, structureSize);
+            }
+        }
+
+        public static Bitmap Dilation(Bitmap sourceImage, string shape, int structureSize = 3)
+        {
+            bool[,] structElement = GetStructuringElement(shape, structureSize);
+            return ApplyMorphologicalOperation(sourceImage, structElement, false);
+        }
+
+        public static Bitmap Erosion(Bitmap sourceImage, string shape, int structureSize = 3)
+        {
+            bool[,] structElement = GetStructuringElement(shape, structureSize);
+            return ApplyMorphologicalOperation(sourceImage, structElement, true);
+        }
+
+        private static bool[,] GetStructuringElement(string shape, int size)
+        {
+            bool[,] element = new bool[size, size];
+            int center = size / 2;
+
+            switch (shape)
+            {
+                case "Plus": // Plus
+                    for (int i = 0; i < size; i++)
+                    {
+                        element[center, i] = true;
+                        element[i, center] = true;
+                    }
+                    break;
+
+                case "Cross": // Cross
+                    for (int i = 0; i < size; i++)
+                    {
+                        element[i, i] = true;
+                        element[i, size - i - 1] = true;
+                    }
+                    break;
+
+                case "Circle": // Circle (approximation)
+                    for (int y = 0; y < size; y++)
+                    {
+                        for (int x = 0; x < size; x++)
+                        {
+                            int dx = x - center;
+                            int dy = y - center;
+                            if (dx * dx + dy * dy <= (center * center))
+                                element[y, x] = true;
+                        }
+                    }
+                    break;
+
+                default: // Full (fallback)
+                    for (int y = 0; y < size; y++)
+                        for (int x = 0; x < size; x++)
+                            element[y, x] = true;
+                    break;
+            }
+
+            return element;
         }
 
     }

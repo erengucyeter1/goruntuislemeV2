@@ -56,9 +56,13 @@ namespace goruntuislemeV2.form
                 case FilterNames.Threshold:
                     panel.Controls.Add(new ThresholdPanel());
                     break;
+                case FilterNames.MeanConvolution:
+                    panel.Controls.Add(new MeanConvolutionPanel());
+                    break;
                 case FilterNames.Morphology:
                     panel.Controls.Add(new MorphologyPanel());
                     break;
+
                 case FilterNames.NoiseCleaner:
                     panel.Controls.Add(new NoiseCleanerPanel());
                     break;
